@@ -5,7 +5,7 @@ Free to use models created with either CASL or CASL-SG.
 In particular, the template models are of most use.
 
 ##Structure
-`model_name/`
+`model_name/` :
 	
 	`CASL/` : The model created with CASL (if possible)  
 	
