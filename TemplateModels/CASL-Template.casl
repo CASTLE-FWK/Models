@@ -1,0 +1,50 @@
+//Import all basic things? Yes!
+import cas.test.commons.*;
+
+SYSTEM: {
+	name: "CASL EXAMPLE";
+	description: "";
+	ruleset: {
+		type: lenient;
+		inspection_level: none;
+		lenient_exceptions: diversity modularity;
+		semantic_groups: disable;
+	};
+	parameters: {};
+	functions: {};
+	agent_types: {
+		anAgent;
+	};
+	environment_types: {
+		anEnvironment;
+	};
+	end_conditions: {
+		condition STEPS terminationStep;
+	};	
+};
+
+AGENT anAgent: {
+	description: "";
+	parameters: {};
+	functions: {};
+	behaviors: {};
+	interactions: {};
+	adaptation: {};
+	subsystems: {};
+};
+
+ENVIRONMENT anEnvironment: {
+	description: "";
+	environment_rules: {
+		type: implicit
+		attributes: virtual
+		layout_type: BOUND;
+	};
+	parameters: {};
+	functions: {};
+	behaviors: {};
+	interactions: {};
+	adaptation: {};	
+	subsystems: {};
+	group_interactions: {};
+};
