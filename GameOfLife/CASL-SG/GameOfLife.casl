@@ -1,0 +1,212 @@
+import cas.test.commons.*;  
+SYSTEM: {  
+	name: "GameOfLife_SG";  
+    
+	description: "";
+	ruleset: {    
+		type: lenient;   
+		inspection_level: strong;   
+		lenient_exceptions: diversity modularity;
+		semantic_groups: enable; 
+	};
+      
+	parameters: { 
+	 	var int:cellPopulation = 400; 
+	 	var int:numCellCitiesX;  
+	 	var int:numCellCitiesY; 
+	 	var int:numCellsPerCityX;
+	 	var int:numCellsPerCityY;
+	 	var Vector2:numCellCities;   
+	 	var Vector2:numCellsPerCity;
+	};
+  
+	functions: {
+		def init()(): {
+			self.numCellCities.setPair(self.numCellCitiesX, self.numCellCitiesY);
+			self.numCellsPerCity.setPair(self.numCellsPerCityX, self.numCellsPerCityY);
+		};
+	}; 
+	agent_types: {
+		Cell;
+	};
+	            
+	group_types: {
+		CellCity; 
+	};
+
+	environment_types: {
+		TheEnvironment;  
+	};  
+ 
+	end_conditions: { 
+		condition STEPS steps;
+	};
+};
+
+AGENT Cell: {
+	description: "A cell"; 
+
+	parameters: {
+		var bool:Alive = false; 
+		grp CellCity:theCity; 
+		var Vector2:cellPosition;
+	};      
+ 
+	functions: { 
+		def init()(): {}; 
+		 
+		def setPosition(var Vector2:pos)(): {
+			self.cellPosition = pos;
+		};
+  
+		def setState(var bool:state)(): {
+			self.Alive = state;  
+		};
+	};
+
+	behaviors: {
+		changeStateToDead[SELF][DELAYED](): {
+			FUNCTION.setState(false);
+		};
+		changeStateToAlive[SELF][DELAYED](): { 
+			FUNCTION.setState(true); 
+		};
+		doStep[SELF][REPEAT(1)](): {
+			INTERACTION.countAliveNeighbors(self);
+		};
+		doSecondStep[SELF][STEP(2)](): {
+			INTERACTION.countAliveNeighbors(self);
+		};     
+	};
+     
+	interactions: {  
+		countAliveNeighbors[QUERY][INPUT()](agt Cell:c): {  
+			var List<agt.Cell>:neighborsList = self.theCity.GRP_INTERNAL.getNeighbours(self.cellPosition);  //Why you no work? :(
+			var int:aliveNeighbors = CASL.COUNT[neighborsList](Alive); 
+			 
+			ADAPTATION.stateAdaptation(aliveNeighbors);
+		}; 
+	};
+ 
+	adaptation: { 
+		stateAdaptation[IMPLICIT][NONE](var int:neighbors): {
+			if (self.Alive) then
+				if (neighbors >= 2 && neighbors <= 3) then 
+					BEHAVIOR.changeStateToDead();
+				endif;
+			else
+				if (neighbors :== 3) then
+					BEHAVIOR.changeStateToAlive();
+				endif;
+			endif;
+		};
+	};
+	subsystems: {};   
+};   
+
+GROUP CellCity: {
+	description: "A CellCity";	
+	group_rules: {
+		layout_type: GRID;
+	};
+	parameters: {
+		env TheEnvironment:theEnv;
+		var Neighbors<grp.CellCity>:neighbors;
+		
+		//Setting up representation  
+		var Grid<agt.Cell>:cellGrid;
+		var Vector2:numberOfCells;
+		var LayoutParameters:layoutParameters;
+		var Vector2:cellCityPosition;
+	};   
+	functions: {  
+		def init(var Vector2:cells)(): {
+			self.layoutParameters.addEntityType(AGENT.Cell); 
+			self.numberOfCells = SYSTEM.numCellCities; 
+			self.cellGrid.init(self.numberOfCells, layoutParameters);
+			self.layoutParameters.addContainedEntities(self.cellGrid);
+		};
+	}; 
+	behaviors: {};
+	transmissions: {
+		//TODO: This isn't being generated in the SETUP phase
+		 getCellCityNeighbours[SETUP][STATE][REPEAT (2)](): {  
+			//Edges  
+			grp CellCity:ccL = self.neighbors.getL();
+			ccL.GRP_TRANSMISSION.receiveStates(theEnv.ENV_INTERACTION.receiveStates(ENUM.GridPositions.LEFT, cellGrid.getAll(ENUM.GridPositions.LEFT)));
+			
+			grp CellCity:ccR = self.neighbors.getR();
+			ccR.GRP_TRANSMISSION.receiveStates(theEnv.ENV_INTERACTION.receiveStates(ENUM.GridPositions.RIGHT,cellGrid.getAll(ENUM.GridPositions.RIGHT)));
+			
+			grp CellCity:ccD = self.neighbors.getD();
+			ccD.GRP_TRANSMISSION.receiveStates(theEnv.ENV_INTERACTION.receiveStates(ENUM.GridPositions.DOWN,cellGrid.getAll(ENUM.GridPositions.TOP)));
+			
+			grp CellCity:ccU = self.neighbors.getU();
+			ccU.GRP_TRANSMISSION.receiveStates(theEnv.ENV_INTERACTION.receiveStates(ENUM.GridPositions.UP,cellGrid.getAll(ENUM.GridPositions.BOTTOM)));
+			
+			//Corners
+			grp CellCity:ccUL = self.neighbors.getUL();
+			ccUL.GRP_TRANSMISSION.receiveStates(theEnv.ENV_INTERACTION.receiveStates(ENUM.GridPositions.UPLEFT,cellGrid.getAll(ENUM.GridPositions.TOPLEFT)));
+			
+			grp CellCity:ccUR = self.neighbors.getUR();
+			ccUR.GRP_TRANSMISSION.receiveStates(theEnv.ENV_INTERACTION.receiveStates(ENUM.GridPositions.UPRIGHT,cellGrid.getAll(ENUM.GridPositions.TOPRIGHT)));
+			
+			grp CellCity:ccDL = self.neighbors.getDL();
+			ccDL.GRP_TRANSMISSION.receiveStates(theEnv.ENV_INTERACTION.receiveStates(ENUM.GridPositions.DOWNLEFT,cellGrid.getAll(ENUM.GridPositions.BOTTOMLEFT)));
+			
+			grp CellCity:ccDR = self.neighbors.getDR();
+			ccDR.GRP_TRANSMISSION.receiveStates(theEnv.ENV_INTERACTION.receiveStates(ENUM.GridPositions.DOWNRIGHT,cellGrid.getAll(ENUM.GridPositions.BOTTOMRIGHT)));			
+		}; 
+
+		receiveStates[SETUP][AGENT][SINGLE](var GridPositions:gp, var List<agt.Cell>:neighbors): {
+			self.cellGrid.addPhantomCells(gp,neighbors);
+		};		 
+		
+		getNeighboursOfCellCity[SETUP][AGENT][SINGLE](var Vector2:thisPos): {
+			self.neighbors = theEnv.ENV_INTERACTION.receiveCityNeighbours(thisPos);
+		};
+	}; 
+	internals: {
+		getNeighbours[QUERY][INPUT(1)](var Vector2:cellPos): {
+			var List<agt.Cell>:neighbors = self.cellGrid.getNeighborsFromPos(cellPos);
+		};
+	};
+}; 
+
+ENVIRONMENT TheEnvironment: {
+	description: "";
+	environment_rules: {
+		type: implicit 
+		attributes: virtual
+		layout_type: GRID;
+	};          
+	parameters: {
+		var LayoutParameters:layoutParameters;
+		var Vector2:numberOfCellCities;
+		var Vector2:cellsPerCity;
+		var Grid<grp.CellCity>:CellCityGrid;
+		grp CellCity:cellCity;
+	};
+	functions: {
+		def init()(): {
+			self.layoutParameters.addEntityType(GROUP.CellCity);	
+			CellCityGrid.init(self.numberOfCellCities, self.layoutParameters);
+			CellCityGrid.place();
+			CellCityGrid.initCells(self.cellsPerCity);
+			self.layoutParameters.addContainedEntities(self.CellCityGrid);
+		};
+	}; 
+	behaviors: {}; 
+	interactions: {
+		receiveStates[COMMUNICATION][INPUT(1)](var GridPositions:gp, var List:neighbors): {
+			CellCityGrid.send(gp, neighbors, "receiveStates"); //This works, but IT RELIES ON THE IDEAS OF REFLECTION WHICH IS DUMB
+		};
+		
+		receiveCityNeighbours[COMMUNICATION][INPUT(1)](var Vector2:pos): {			
+			var Neighbors<grp.CellCity>:neighbors = self.CellCityGrid.getNeighborsFromPos(pos);
+		};
+	};
+	adaptation: {};
+	subsystems: {};
+	group_interactions: {};
+};
