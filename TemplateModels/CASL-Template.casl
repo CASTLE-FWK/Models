@@ -1,4 +1,4 @@
-//Import all basic things? Yes!
+//This import will soon not be necessary
 import cas.test.commons.*;
 
 SYSTEM: {
@@ -15,6 +15,9 @@ SYSTEM: {
 	agent_types: {
 		anAgent;
 	};
+	group_types: {
+		aGroup; //This will be fixed soon
+	};
 	environment_types: {
 		anEnvironment;
 	};
@@ -26,7 +29,9 @@ SYSTEM: {
 AGENT anAgent: {
 	description: "";
 	parameters: {};
-	functions: {};
+	functions: {
+		def initialize()(): {};
+	};
 	behaviors: {};
 	interactions: {};
 	adaptation: {};
@@ -41,10 +46,12 @@ ENVIRONMENT anEnvironment: {
 		layout_type: BOUND;
 	};
 	parameters: {};
-	functions: {};
+	functions: {
+		def initialize()(): {};
+	};
 	behaviors: {};
 	interactions: {};
 	adaptation: {};	
 	subsystems: {};
-	group_interactions: {};
+	group_interactions: {}; //This will soon not be necessary
 };
