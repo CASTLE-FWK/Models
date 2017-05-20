@@ -1,0 +1,128 @@
+import cas.test.commons.*;
+SYSTEM: {      
+        name: "Game Of Life";   
+        description: "Stock standard GoL";
+        ruleset: {  
+                type: lenient;  
+                inspection_level: none;
+                lenient_exceptions: diversity modularity;
+                semantic_groups: disable;
+        };
+        parameters: {
+        	var * int:numberOfCellsX = 200;
+        	var * int:numberOfCellsY = 200;
+		 	var * int:ruleX = 2;
+		 	var * int:ruleY = 3;
+		 	var * int:ruleZ = 3;
+
+			var Vector2:cellGridDims;
+        };
+        functions: {
+        	def initialise()(): {
+        		self.cellGridDims.setPair(self.numberOfCellsX, self.numberOfCellsY);
+        	};
+        };
+        agent_types: {
+                Cell; 
+        };
+        group_types: {;};
+        
+        environment_types: {
+                CellEnv; 
+        };
+        end_conditions: {
+                condition STEPS terminationStep;
+        };
+};
+
+AGENT Cell: {
+        description: "A cell"; 
+
+	parameters: {
+		var bool:Alive = false; 
+		env CellEnv:theEnv;
+		var Vector2:cellPosition;
+	}; 
+  
+	functions: { 		    
+		def setPosition(var Vector2:pos)(): {
+			self.cellPosition = pos;
+		};
+   
+		def setState(var bool:state)(): {
+			self.Alive = state;  
+		};
+		
+		def initialize()():{};
+	};
+
+	behaviors: {
+		changeStateToDead[SELF][DELAYED](): {
+			FUNCTION.setState(false);
+		};
+		changeStateToAlive[SELF][DELAYED](): { 
+			FUNCTION.setState(true); 
+		};
+		doStep[SELF][REPEAT(1)](): {
+			INTERACTION.countAliveNeighbors(self);
+		};
+
+	};
+     
+	interactions: {  
+		countAliveNeighbors[QUERY][INPUT()](agt Cell:c): {  
+			var List<agt.Cell>:neighborsList = self.theEnv.ENV_INTERACTION.getNeighbours(self.cellPosition, 1); 
+			var int:aliveNeighbors = CASL.COUNT[neighborsList](Alive); 
+			 
+			ADAPTATION.stateAdaptation(aliveNeighbors);
+		}; 
+	};
+ 
+	adaptation: { 
+		stateAdaptation[IMPLICIT][NONE](var int:neighbors): {
+			if (self.Alive) then
+				if (neighbors >= 2 && neighbors <= 3) then 
+					BEHAVIOR.changeStateToDead();
+				endif;
+			else
+				if (neighbors == 3) then
+					BEHAVIOR.changeStateToAlive(); 
+				endif;
+			endif;
+		};
+	};
+	subsystems: {};  
+}; 
+  
+ENVIRONMENT CellEnv: {
+        description: "";
+        environment_rules: {
+                type: implicit
+                attributes: virtual
+                layout_type: GRID;
+        };
+        parameters: {
+        	var LayoutParameters:layoutParameters;
+			var Vector2:numberOfCellsOnGrid;
+			var Grid<agt.Cell>:cellGrid;
+        };
+        functions: {
+        	def initialize()(): {
+        		self.layoutParameters.addEntityType(AGENT.Cell);
+        		self.numberOfCellsOnGrid = SYSTEM.cellGridDims;
+        		cellGrid.init(self.numberOfCellsOnGrid, self.layoutParameters);
+        		cellGrid.place();
+        		cellGrid.initCells();
+        		self.layoutParameters.addContainedEntities(self.cellGrid);
+        	};
+        };
+        behaviors: {};
+        interactions: {
+	    	getNeighbours[QUERY][INPUT(1)](var Vector2:cellPos, var int:depth): {
+				var List<agt.Cell>:neighbors = self.cellGrid.getNeighboursFromVector(cellPos, depth);
+			};
+        };
+        adaptation: {};
+        subsystems: {};
+        group_interactions: {};
+};
