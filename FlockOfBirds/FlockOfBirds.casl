@@ -1,124 +1,19 @@
-import cas.test.commons.*;
-SYSTEM: {
-	name: "Flock of Birds";
-	description: "Reynold's Boids Model";
-	ruleset: {
-        type: lenient;  
-        inspection_level: none;
-        lenient_exceptions: diversity modularity;
-        semantic_groups: disable;
-	};
-	parameters: {
-		var * int:numberOfBirds = 100;
-	};
-	functions: {
-		def initialize()(): {};
-	};
-	agent_types: {
-		Bird;
-	};
-	group_types: {
-		;
-	};
-	environment_types: {
-		TheSky;
-	};
-	end_conditions: {
-		condition STEPS terminationStep;
-	};	
-};
-
-AGENT Bird: {
-	description: "A Bird";
-	parameters: {
-		var Vector2:velocity;
-		var Vector2:position;
-		var float:radius;
-		var float:separation;
-		env TheSky:sky;
-	};
-	functions: {
-		def initialize(var Vector2:initPosition, var Vector2:initHeading, var float:radius, var float:separation)(): {
-			self.position = initPosition;
-			self.velocity = initHeading;
-			self.radius = radius;
-			self.separation = separation;			
-		};		
-	};
-	behaviors: {
-		doStep[SELF][REPEAT(1)](): {
-			//Check Birds
-			var List<agt.Bird>:neighborsList = self.sky.ENV_INTERACTION.getNeighbors(self.position, radius);
-			//3 temp rule vectors
-			var Vector2:centre;
-			var Vector2:sep;
-			var Vector2:velo;
-						
-			foreach(Bird b : neighborsList) do
-				var Vector2:neighPos = b.AGT_INTERACTION.checkPosition();
-				var Vector2:neighVel = b.AGT_INTERACTION.checkVelocity();
-				centre.add(neighPos);
-				sep.subtract(neighPos.subtract(self.position));
-				velo.add(neighVel);
-			endfor;
-			
-			centre.add(sep);
-			centre.add(velo);
-			self.velocity.add(centre);
-			self.position.add(self.velocity);
-//			
-		};
-	};
-	interactions: {
-		checkVelocity[QUERY][INPUT(1)](): {
-			self.velocity;
-		};
-		
-		checkPosition[QUERY][INPUT(1)](): {
-			self.position;
-		};
-	};
-	adaptation: {};
-	subsystems: {};
-};
-
-ENVIRONMENT TheSky: {
-	description: "";
-	environment_rules: {
-		type: implicit
-		attributes: virtual
-		layout_type: CONTINUOUS;
-	};
-	parameters: {
-		var Continuous<agt.Bird>:sky;
-	};
-	functions: {
-		def initialize()(): {};
-	};
-	behaviors: {};
-	interactions: {
-		getNeighbors[QUERY][INPUT(1)](var Vector2:BirdPos, var float:depth): {
-			var List<agt.Bird>:neighbors = self.sky.getNeighborsFromPosition(BirdPos, depth);
-		};
-	};
-	adaptation: {};	
-	subsystems: {};
-	group_interactions: {}; 
-};import cas.test.commons.*; 
+import cas.test.commons.*; 
 SYSTEM: {
 	name: "Flock Of Birds";
 	description: "Reynold's Boids Model";
 	ruleset: {
         type: lenient;   
-        inspection_level: none;
+        inspection_level: none; 
         lenient_exceptions: diversity modularity;
-        semantic_groups: disable;
+        semantic_groups: disable; 
 	};
-	parameters: {
-		var * int:numberOfBirds = 100;
+	parameters: { 
+		var * int:numberOfBirds = 100; 
 		var * int:initialDimsX = 100;
 		var * int:initialDimsY = 100;
-	};
+		var * int:terminationStep = 1000;
+	}; 
 	functions: {
 		def initialize()(): {};
 	};
@@ -177,21 +72,21 @@ AGENT Bird: {
 //			
 		};
 	};
-	interactions: {
-		checkVelocity[QUERY][INPUT(1)](): {
+	interactions: { 
+		checkVelocity[QUERY][INPUT(1)](): { 
 			self.velocity;
-		};
+		};  
 		
 		checkPosition[QUERY][INPUT(1)](): {
 			self.position;
 		};
 	};
-	adaptation: {};
+	adaptation: {}; 
 	subsystems: {};
 };
 
 ENVIRONMENT TheSky: {
-	description: "";
+	description: ""; 
 	environment_rules: {
 		type: implicit
 		attributes: virtual
@@ -199,13 +94,35 @@ ENVIRONMENT TheSky: {
 	};
 	parameters: {
 		var Continuous<agt.Bird>:sky;
+		var LayoutParameters:layoutParameters;
 	};
 	functions: {
 		def initialize()(): {
 			sky.setDimensions(SYSTEM.initialDimsX, SYSTEM.initialDimsX);
+			self.layoutParameters.addEntityType(AGENT.Bird);
+			var float:radius = 50; 
+			var float:sep = 10;
+			raw-java initBlock: {
+				"for (int i = 0; i < FlockOfBirds.getNumberOfBirds();i++){
+					EntityID eid = new EntityID(\"Bird_\"+i, i);
+					Bird tmpBird = new Bird(eid);
+					Vector2 initPos = Utilities.randomiseVectorDouble(0, FlockOfBirds.getInitialDimsX(), 0, FlockOfBirds.getInitialDimsY());
+					Vector2 initVelo = Utilities.randomiseVectorDouble(-10, 10, -10, 10);
+					tmpBird.setSky(this);
+					tmpBird.setPosition(initPos);
+					tmpBird.initialize(initPos, initVelo, radius, sep);
+					sky.add(tmpBird, initPos);
+				}"
+			}
+			;layoutParameters.addContainedEntities(sky);
 		};
 	};
-	behaviors: {};
+	behaviors: {
+		//Update positions
+		updatePositions[AGENT][REPEAT(1)](): {
+//			sky.updatePositions();
+		};
+	};
 	interactions: {
 		getNeighbors[QUERY][INPUT(1)](var Vector2:BirdPos, var float:depth): {
 			var List<agt.Bird>:neighbors = self.sky.getNeighborsFromPosition(BirdPos, depth);
