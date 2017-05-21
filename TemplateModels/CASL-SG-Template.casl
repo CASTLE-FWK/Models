@@ -1,4 +1,3 @@
-//Import all basic things? Yes!
 import cas.test.commons.*;
 
 SYSTEM: {
@@ -7,10 +6,12 @@ SYSTEM: {
 	ruleset: {
 		type: lenient;
 		inspection_level: none;
-		lenient_exceptions: diversity modularity;
+		lenient_exceptions: diversity modularity adaptation; //This is current inactive
 		semantic_groups: enable;
 	};
-	parameters: {};
+	parameters: {
+		var * int:terminationStep = 1000;
+	};
 	functions: {};
 	agent_types: {
 		anAgent;
@@ -29,7 +30,9 @@ SYSTEM: {
 AGENT anAgent: {
 	description: "";
 	parameters: {};
-	functions: {};
+	functions: {
+		def initialize()(): {};
+	};
 	behaviors: {};
 	interactions: {};
 	adaptation: {};
@@ -43,10 +46,12 @@ GROUP aGroup: {
 		layout_type: BOUND;
 	};
 	parameters: {};
-	functions: {};
+	functions: {
+		def initialize()(): {};
+	};
 	behaviors: {};
-	transmissions: {};
-	internals: {};
+	external_interaction: {};
+	internal_interactions: {};
 };
 
 ENVIRONMENT anEnvironment: {
@@ -57,7 +62,9 @@ ENVIRONMENT anEnvironment: {
 		layout_type: BOUND;
 	};
 	parameters: {};
-	functions: {};
+	functions: {
+		def initialize()(): {};
+	};
 	behaviors: {};
 	interactions: {};
 	adaptation: {};	

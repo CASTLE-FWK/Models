@@ -10,16 +10,18 @@ SYSTEM: {
         };
         parameters: {
         	var * int:numberOfCellsX = 200;
-        	var * int:numberOfCellsY = 200;
-		 	var * int:ruleX = 2;
+        	var * int:numberOfCellsY = 200; 
+		 	var * int:ruleX = 2; 
 		 	var * int:ruleY = 3;
 		 	var * int:ruleZ = 3;
+		 	var * int:terminationStep = 1000;
 
 			var Vector2:cellGridDims;
         };
         functions: {
-        	def initialise()(): {
+        	def initialize()(): {
         		self.cellGridDims.setPair(self.numberOfCellsX, self.numberOfCellsY);
+        		
         	};
         };
         agent_types: {
@@ -89,7 +91,7 @@ AGENT Cell: {
 					BEHAVIOR.changeStateToAlive(); 
 				endif;
 			endif;
-		};
+		}; 
 	};
 	subsystems: {};  
 }; 
@@ -110,9 +112,23 @@ ENVIRONMENT CellEnv: {
         	def initialize()(): {
         		self.layoutParameters.addEntityType(AGENT.Cell);
         		self.numberOfCellsOnGrid = SYSTEM.cellGridDims;
-        		cellGrid.init(self.numberOfCellsOnGrid, self.layoutParameters);
-        		cellGrid.place();
-        		cellGrid.initCells();
+				raw-java initBlock: {
+					"int count = 0;
+					for (int i = 0; i < GameOfLife.numberOfCellsX; i++) {
+						for (int j = 0; j < GameOfLife.numberOfCellsY; j++) {
+							EntityID eid = new EntityID(\"Cell_\"+i+\"_\"+j, count);
+							Cell tmpCell = new Cell(eid);
+							tmpCell.setPosition(new Vector2(i,j));
+							tmpCell.initialise();
+							tmpCell.setState(Utilities.generateCoinFlip());
+							tmpCell.setTheEnv(this);
+							cellGrid.addCell(tmpCell, i, j);
+							count++;
+						}
+					}
+"
+				}
+				;
         		self.layoutParameters.addContainedEntities(self.cellGrid);
         	};
         };
