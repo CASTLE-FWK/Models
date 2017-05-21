@@ -2,7 +2,7 @@ import cas.test.commons.*;
 SYSTEM: {      
         name: "Game Of Life";   
         description: "Stock standard GoL";
-        ruleset: {  
+        ruleset: {   
                 type: lenient;  
                 inspection_level: none;
                 lenient_exceptions: diversity modularity;
@@ -15,12 +15,23 @@ SYSTEM: {
 		 	var * int:ruleY = 3;
 		 	var * int:ruleZ = 3;
 		 	var * int:terminationStep = 1000;
+		 	var LayoutParameters:layoutParameters;
+			var Vector2:numberOfCells;
+			var Grid<env.CellEnv>:cellEnvGrid;
+			var Vector2:envSize;
+			
 
 			var Vector2:cellGridDims;
         };
         functions: {
         	def initialize()(): {
-        		self.cellGridDims.setPair(self.numberOfCellsX, self.numberOfCellsY);
+        		envSize.setPair(1,1);
+        		cellEnvGrid.init(envSize, layoutParameters);
+        		self.numberOfCells.setPair(numberOfCellsX,numberOfCellsY);
+        		self.layoutParameters.addEntityType(ENVIRONMENT.CellEnv);
+				cellEnvGrid.init(self.numberOfCells, self.layoutParameters); 
+//				CellMegaCityGrid.place();
+				self.layoutParameters.addContainedEntities(self.cellEnvGrid);
         		
         	};
         };
@@ -103,15 +114,16 @@ ENVIRONMENT CellEnv: {
                 attributes: virtual
                 layout_type: GRID;
         };
-        parameters: {
+        parameters: { 
         	var LayoutParameters:layoutParameters;
 			var Vector2:numberOfCellsOnGrid;
 			var Grid<agt.Cell>:cellGrid;
         };
         functions: {
-        	def initialize()(): {
+        	def initialize()(): {				       	
         		self.layoutParameters.addEntityType(AGENT.Cell);
         		self.numberOfCellsOnGrid = SYSTEM.cellGridDims;
+        		self.cellGrid.init(self.numberOfCellsOnGrid, self.layoutParameters);
 				raw-java initBlock: {
 					"int count = 0;
 					for (int i = 0; i < GameOfLife.numberOfCellsX; i++) {
