@@ -1,0 +1,102 @@
+package cas.test.commons: {
+	obj Vector2: {
+		var int:X = 0;
+		var int:Y = 0; 
+		def calculateDistance()(): {};
+		def getX()(): {};
+		def getY()(): {};
+		def setX()(): {};
+		def setY()(): {};
+		def setPair()(): {};
+		def add()(): {};
+		def subtract()(): {};		
+	};
+	
+	obj List: {
+		def add()(): {};
+		def end()(): {};
+		def size()(): {};
+	};
+	
+	obj Queue: { //will remove <*> since type inferral will probably be nicer to write with. Oh, we're doing it with typeinferall
+		def deq()(): {};
+		def enq()(): {};
+		def empty()(): {};
+		def size()(): {};
+	};
+	 
+	obj PQueue: { 
+		def deq()(): {};
+		def enq()(): {};
+		def empty()(): {};
+		def size()(): {};
+	};
+	
+	obj Item: {
+		
+	};
+		  
+	obj Map2D: {
+		def get(var Vector2:vec)(var bool:item): {};
+		def peek(var Vector2:vec)(var bool:item): {};
+	};
+	
+	obj GridLocation: {
+		
+	};
+	
+	obj Neighbors: {
+		def init()(): {};
+		def getUL()(): {};
+		def getU()(): {};
+		def getL()(): {};
+		def getUR()(): {};
+		def getR()(): {};
+		def getDR()(): {};
+		def getD()(): {};
+		def getDL()(): {};
+	};  
+	
+	obj Map: {
+		def get()(): {};
+		def add()(): {};		
+	};
+
+	
+	obj LayoutParameters: {
+		def addEntityType()(): {}; // Don't have a generic
+		def addContainedEntities()(): {};
+	}; 
+	
+	//All the representations will need to exist in their own .casl file soon
+	//Along with accompanying library functions
+	obj Torus: {
+		
+	};
+
+	
+	obj Continuous: {
+		def init()(): {};
+		def getAll()(): {};
+		def send()(): {};
+		def place()(): {};	
+		def create()(): {};
+		def getAllOutOfBounds()(): {};
+		def getNeighborsFromPosition()(): {};
+		def setDimensions()(): {};
+	};
+	
+	obj Grid: {		
+		def init()(): {};
+		def getAll()(): {};
+		def getAllAsArray()(): {};
+		def send(var GridPositions:gp, var List<agt.Cell>:neighbors)(): {};
+		def place()(): {};		
+		def addPhantomCells()(): {};
+		def getNeighboursFromVector(var Vector2:pos)(var List<agt.Cell>:neighbors): {};
+		def initCells()(): {};
+	};
+	enum GridPositions: {
+		LEFT,RIGHT, DOWN, UP, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT, TOP, BOTTOM, TOPLEFT, TOPRIGHT, BOTTOMLEFT, BOTTOMRIGHT
+	};
+}; 
