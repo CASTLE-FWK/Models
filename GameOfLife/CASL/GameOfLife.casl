@@ -2,43 +2,39 @@ import cas.test.commons.*;
 SYSTEM: {      
         name: "Game Of Life";   
         description: "Stock standard GoL";
-        ruleset: {   
-                type: lenient;  
+        ruleset: {    
+                type: lenient;   
                 inspection_level: none;
-                lenient_exceptions: diversity modularity;
+                lenient_exceptions: diversity modularity;   
                 semantic_groups: disable;
-        };
-        parameters: {
-        	var * int:numberOfCellsX = 200;
-        	var * int:numberOfCellsY = 200; 
-		 	var * int:ruleX = 2; 
-		 	var * int:ruleY = 3;
-		 	var * int:ruleZ = 3;
-		 	var * int:terminationStep = 1000;
+        };  
+        parameters: { 
+        	var * int:numberOfCellsX = 400;   
+        	var * int:numberOfCellsY = 400;  
+		 	var * int:ruleX = 2;    
+		 	var * int:ruleY = 3; 
+		 	var * int:ruleZ = 3;   
+		 	var * int:terminationStep = 1000;  
 		 	var LayoutParameters:layoutParameters;
 			var Vector2:numberOfCells;
-			var Grid<env.CellEnv>:cellEnvGrid;
+			var Grid<env.CellEnv>:cellEnvGrid;   
 			var Vector2:envSize;
-			
+			  
 
 			var Vector2:cellGridDims;
         };
         functions: {
         	def initialize()(): {
-        		envSize.setPair(1,1);
-        		cellEnvGrid.init(envSize, layoutParameters);
-        		self.numberOfCells.setPair(numberOfCellsX,numberOfCellsY);
         		self.layoutParameters.addEntityType(ENVIRONMENT.CellEnv);
-				cellEnvGrid.init(self.numberOfCells, self.layoutParameters); 
-//				CellMegaCityGrid.place();
-				self.layoutParameters.addContainedEntities(self.cellEnvGrid);
-        		
+        		cellGridDims.setPair(self.numberOfCellsX, self.numberOfCellsY);
+        		envSize.setPair(1,1); 
+				CASL.POPULATE[cellEnvGrid](envSize, self.layoutParameters)[envSize, ENVIRONMENT.CellEnv](); 				
         	};
         };
         agent_types: {
                 Cell; 
         };
-        group_types: {;};
+        group_types: {;};  
         
         environment_types: {
                 CellEnv; 
@@ -57,16 +53,23 @@ AGENT Cell: {
 		var Vector2:cellPosition;
 	}; 
   
-	functions: { 		    
+	functions: {
 		def setPosition(var Vector2:pos)(): {
 			self.cellPosition = pos;
+		};
+		
+		def getPosition()(var Vector2:pos): {
+			pos = self.cellPosition;
 		};
    
 		def setState(var bool:state)(): {
 			self.Alive = state;  
 		};
 		
-		def initialize()():{};
+		def initialize(var bool:initState, env CellEnv:theEnv)():{
+			FUNCTION.setState(initState); 
+			self.theEnv = theEnv;
+		};
 	};
 
 	behaviors: {
@@ -76,10 +79,11 @@ AGENT Cell: {
 		changeStateToAlive[SELF][DELAYED](): { 
 			FUNCTION.setState(true); 
 		};
-		doStep[SELF][REPEAT(1)](): {
+		doStep[AFFECT][REPEAT(1)](): {
 			INTERACTION.countAliveNeighbors(self);
+			CASL.PRINT("HELLO");
 		};
-
+ 
 	};
      
 	interactions: {  
@@ -88,6 +92,7 @@ AGENT Cell: {
 			var int:aliveNeighbors = CASL.COUNT[neighborsList](Alive); 
 			 
 			ADAPTATION.stateAdaptation(aliveNeighbors);
+			CASL.METRIC[true];
 		}; 
 	};
  
@@ -98,13 +103,13 @@ AGENT Cell: {
 					BEHAVIOR.changeStateToDead();
 				endif;
 			else
-				if (neighbors == 3) then
+				if (neighbors == 3) then 
 					BEHAVIOR.changeStateToAlive(); 
 				endif;
-			endif;
+			endif; 
 		}; 
 	};
-	subsystems: {};  
+	subsystems: {}; 
 }; 
   
 ENVIRONMENT CellEnv: {
@@ -112,36 +117,26 @@ ENVIRONMENT CellEnv: {
         environment_rules: {
                 type: implicit
                 attributes: virtual
-                layout_type: GRID;
+                layout_type: GRID; 
         };
-        parameters: { 
+        parameters: {
         	var LayoutParameters:layoutParameters;
-			var Vector2:numberOfCellsOnGrid;
+			var Vector2:numberOfCellsOnGrid; 
+			var Vector2:envPos;
 			var Grid<agt.Cell>:cellGrid;
-        };
-        functions: {
-        	def initialize()(): {				       	
-        		self.layoutParameters.addEntityType(AGENT.Cell);
-        		self.numberOfCellsOnGrid = SYSTEM.cellGridDims;
-        		self.cellGrid.init(self.numberOfCellsOnGrid, self.layoutParameters);
-				raw-java initBlock: {
-					"int count = 0;
-					for (int i = 0; i < GameOfLife.numberOfCellsX; i++) {
-						for (int j = 0; j < GameOfLife.numberOfCellsY; j++) {
-							EntityID eid = new EntityID(\"Cell_\"+i+\"_\"+j, count);
-							Cell tmpCell = new Cell(eid);
-							tmpCell.setPosition(new Vector2(i,j));
-							tmpCell.initialise();
-							tmpCell.setState(Utilities.generateCoinFlip());
-							tmpCell.setTheEnv(this);
-							cellGrid.addCell(tmpCell, i, j);
-							count++;
-						}
-					}
-"
-				}
-				;
-        		self.layoutParameters.addContainedEntities(self.cellGrid);
+        };  
+        functions: {    
+        	def setPosition(var Vector2:pos)(): {
+        		self.envPos = pos;
+        	};
+        	def getPosition()(var Vector2:pos): {
+        		pos = self.envPos;
+        	};
+        	
+        	def initialize()(): {   
+        		self.layoutParameters.addEntityType(AGENT.Cell); 
+        		var Vector2:dims = SYSTEM.cellGridDims;
+        		CASL.POPULATE[cellGrid](SYSTEM.cellGridDims, self.layoutParameters)[dims, AGENT.Cell](CASL.RANDOM[BOOL](0.5), self);		        		
         	};
         };
         behaviors: {};
