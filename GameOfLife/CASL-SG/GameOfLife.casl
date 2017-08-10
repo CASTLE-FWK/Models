@@ -30,15 +30,16 @@ SYSTEM: {
   
 	functions: {
 		def initialize()(): {
+			self.layoutParameters.addEntityType(ENVIRONMENT.CellMegaCity);
 			self.numCellCities.setPair(self.numCellCitiesX,self.numCellCitiesY);
 			self.numCellsPerCity.setPair(self.numCellsPerCityX,self.numCellsPerCityY);
 			
 			self.layoutParameters.addEntityType(ENVIRONMENT.CellMegaCity);
-			CellMegaCityGrid.init(self.numberOfCellMegaCities, self.layoutParameters); 
-			CellMegaCityGrid.place();
-			CellMegaCityGrid.initCells(self.numCellCities, self.numCellsPerCity, self.layoutParameters);
-			self.layoutParameters.addContainedEntities(self.CellMegaCityGrid);
-
+			CASL.POPULATE[CellMegaCityGrid](numCellCities, self.layoutParameters)[numCellCities, ENVIRONMENT.CellMegaCity](self.numCellCities, self.numCellsPerCity, self.layoutParameters);
+//			CellMegaCityGrid.init(self.numberOfCellMegaCities, self.layoutParameters);
+//			CellMegaCityGrid.place();
+//			CellMegaCityGrid.initCells(self.numCellCities, self.numCellsPerCity, self.layoutParameters);
+//			self.layoutParameters.addContainedEntities(self.CellMegaCityGrid);
 		};
 	}; 
 	agent_types: { 
@@ -65,12 +66,12 @@ AGENT Cell: {
 		var bool:Alive = false; 
 		grp CellCity:theCity;  
 		var Vector2:cellPosition;
-		
 	};      
  
 	functions: { 
-		def initialize(var bool:initialLife)(): {
+		def initialize(var bool:initialLife, grp CellCity:city)(): {
 			self.Alive = initialLife;
+			self.theCity = city;
 		}; 
 		 
 		def setPosition(var Vector2:pos)(): {
@@ -90,30 +91,19 @@ AGENT Cell: {
 			FUNCTION.setState(true); 
 		};
  
-		doStep[AGENT][REPEAT(1)](): {
-			var List<agt.Cell>:listOfNeighbors = INTERACTION.findNeighbors();
-			var int:aliveNeighbors = 0;
-			foreach(Cell i : listOfNeighbors) do
-				INTERACTION.checkIfAlive(i);
-			endfor;
-			ADAPTATION.stateAdaptation(aliveNeighbors);
+		doStep[AFFECT][REPEAT(1)](): {
+			INTERACTION.countAliveNeighbors(self);
 		};
 	};  
   
 	interactions: {
-		findNeighbors[QUERY][INPUT()](): { 
-			var List<agt.Cell>:neighborsList = self.theCity.GRP_INT_INTERACTION.getNeighbours(self.cellPosition); 
-		};   
-		 
-		checkIfAlive[QUERY][INPUT()](agt Cell:c): {
-			CASL.METRIC[true];  
-			if (c.AGT_INTERACTION.amIAlive()) then  
-				1;
-			else  
-				0;   
-			endif;			
+		countAliveNeighbors[QUERY][INPUT()](agt Cell:c): {  
+			var List<agt.Cell>:neighborsList = self.theCity.GRP_INT_INTERACTION.getNeighbours(self.cellPosition, 1); 
+			var int:aliveNeighbors = CASL.COUNT[neighborsList](Alive); 
 			 
-		};		    
+			ADAPTATION.stateAdaptation(aliveNeighbors);
+			CASL.METRIC[true];
+		}; 		    
 		amIAlive[QUERY][INPUT()](): {
 			self.Alive; 
 		};		
@@ -153,20 +143,20 @@ GROUP CellCity: {
 		grp CellCity:ccL;
 		grp CellCity:ccR;
 		grp CellCity:ccD;
-		grp CellCity:ccU;
+		grp CellCity:ccU; 
 		 
 		grp CellCity:ccDL;
 		grp CellCity:ccUL; 
 		grp CellCity:ccDR;
 		grp CellCity:ccUR;
-		
+		 
 	};    
 	functions: {  
 		def initialize(var Vector2:cells)(): {
 			self.layoutParameters.addEntityType(AGENT.Cell); 
 			self.numberOfCells = SYSTEM.numCellCities; 
 			self.cellGrid.init(self.numberOfCells, layoutParameters);
-			self.layoutParameters.addContainedEntities(self.cellGrid);
+//			self.layoutParameters.addContainedEntities(self.cellGrid);
 			self.ccL = self.neighbors.getL();
 			self.ccR = self.neighbors.getR();
 			self.ccD = self.neighbors.getD();
@@ -175,9 +165,13 @@ GROUP CellCity: {
 			self.ccUR = self.neighbors.getUR();
 			self.ccDL = self.neighbors.getDL();
 			self.ccDR = self.neighbors.getDR();
+			
+			CASL.POPULATE[cellGrid](self.numberOfCells, self.layoutParameters)[self.numberOfCells, AGENT.Cell](CASL.RANDOM[BOOL](0.5), self);
 		}; 
 	}; 
-	behaviors: {};   
+	behaviors: {
+		
+	};      
 	external_interactions: {
 		 sendStates[SETUP][STATE][REPEAT (1)](): {  
 			//Edges  
@@ -185,7 +179,7 @@ GROUP CellCity: {
 			ccR.GRP_EXT_INTERACTION.receiveStates(ENUM.GridPositions.RIGHT,cellGrid.getAll(ENUM.GridPositions.RIGHT));
 			ccD.GRP_EXT_INTERACTION.receiveStates(ENUM.GridPositions.DOWN,cellGrid.getAll(ENUM.GridPositions.TOP));
 			ccU.GRP_EXT_INTERACTION.receiveStates(ENUM.GridPositions.UP,cellGrid.getAll(ENUM.GridPositions.BOTTOM));
-			
+			 
 			//Corners
 			ccUL.GRP_EXT_INTERACTION.receiveStates(ENUM.GridPositions.UPLEFT,cellGrid.getAll(ENUM.GridPositions.TOPLEFT));
 			ccUR.GRP_EXT_INTERACTION.receiveStates(ENUM.GridPositions.UPRIGHT,cellGrid.getAll(ENUM.GridPositions.TOPRIGHT));
@@ -202,11 +196,8 @@ GROUP CellCity: {
 		};
 	}; 
 	internal_interactions: {
-		getNeighbours[QUERY][INPUT(1)](var Vector2:cellPos): {
-			var List<agt.Cell>:neighbors = self.cellGrid.getNeighboursFromVector(cellPos, 1);
-		};
-		test[QUERY][INPUT(1)](): {
-			
+		getNeighbours[QUERY][INPUT(1)](var Vector2:cellPos, var int:dist): {
+			var Neighbors<agt.Cell>:neighbors = self.cellGrid.getNeighborsFromVectorWithContext(cellPos, dist);
 		};
 	};  
 }; 
@@ -231,16 +222,18 @@ ENVIRONMENT CellMegaCity: {
 			self.cellsPerCity = cellsPerCity;
 			self.layoutParameters = layoutParameters;
 			self.layoutParameters.addEntityType(GROUP.CellCity);
-			CellCityGrid.init(self.numberOfCellCities, self.layoutParameters);
-			CellCityGrid.place();
-			CellCityGrid.initCells(self.cellsPerCity);
-			self.layoutParameters.addContainedEntities(self.CellCityGrid);
+			
+			CASL.POPULATE[CellCityGrid](self.numberOfCellCities, self.layoutParameters)[self.cellsPerCity, GROUP.CellCity](self.cellsPerCity);
+//			CellCityGrid.init(self.numberOfCellCities, self.layoutParameters);
+//			CellCityGrid.place();
+//			CellCityGrid.initCells(self.cellsPerCity);
+//			self.layoutParameters.addContainedEntities(self.CellCityGrid);
 		}; 
 	}; 
 	behaviors: {}; 
 	interactions: {		
 		receiveCityNeighbours[COMMUNICATION][INPUT(1)](var Vector2:pos): {			
-			var Neighbors<grp.CellCity>:neighbors = self.CellCityGrid.getNeighboursFromVector(pos, 1);
+			var Neighbors<grp.CellCity>:neighbors = self.CellCityGrid.getNeighborsFromVectorWithContext(pos, 1);
 		};
 	};
 	adaptation: {};
