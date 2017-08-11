@@ -12,12 +12,20 @@ SYSTEM: {
 	       
 	parameters: { 
 		//Items with * will be generated in the initialization file
-	 	var * int:numCellCitiesX = 10; 
-	 	var * int:numCellCitiesY = 10;   
+		
+		//2 x 2 CellCities
+	 	var * int:numCellCitiesX = 2; 
+	 	var * int:numCellCitiesY = 2;   
+	 	
+	 	//10 x 10 Cells per CellCity
 	 	var * int:numCellsPerCityX = 10;
 	 	var * int:numCellsPerCityY = 10;
+	 	
+	 	//1 x 1 CellMegaCity
 	 	var * int:numCellMegaCitiesX = 1;
 	 	var * int:numCellMegaCitiesY = 1;
+	 	
+	 	//Run for 1000 steps
 	 	var * int:terminationStep = 1000;
 	 	 
 	 	//These are standard parameters.
@@ -31,15 +39,11 @@ SYSTEM: {
 	functions: {
 		def initialize()(): {
 			self.layoutParameters.addEntityType(ENVIRONMENT.CellMegaCity);
-			self.numCellCities.setPair(self.numCellCitiesX,self.numCellCitiesY);
-			self.numCellsPerCity.setPair(self.numCellsPerCityX,self.numCellsPerCityY);
+			self.numCellCities.setPair(SYSTEM.numCellCitiesX, SYSTEM.numCellCitiesY);
+			self.numCellsPerCity.setPair(SYSTEM.numCellsPerCityX, SYSTEM.numCellsPerCityY);
 			
 			self.layoutParameters.addEntityType(ENVIRONMENT.CellMegaCity);
 			CASL.POPULATE[CellMegaCityGrid](numCellCities, self.layoutParameters)[numCellCities, ENVIRONMENT.CellMegaCity](self.numCellCities, self.numCellsPerCity, self.layoutParameters);
-//			CellMegaCityGrid.init(self.numberOfCellMegaCities, self.layoutParameters);
-//			CellMegaCityGrid.place();
-//			CellMegaCityGrid.initCells(self.numCellCities, self.numCellsPerCity, self.layoutParameters);
-//			self.layoutParameters.addContainedEntities(self.CellMegaCityGrid);
 		};
 	}; 
 	agent_types: { 
@@ -73,10 +77,6 @@ AGENT Cell: {
 			self.Alive = initialLife;
 			self.theCity = city;
 		}; 
-		 
-		def setPosition(var Vector2:pos)(): {
-			self.cellPosition = pos;
-		};
   
 		def setState(var bool:state)(): {
 			self.Alive = state;
@@ -223,11 +223,7 @@ ENVIRONMENT CellMegaCity: {
 			self.layoutParameters = layoutParameters;
 			self.layoutParameters.addEntityType(GROUP.CellCity);
 			
-			CASL.POPULATE[CellCityGrid](self.numberOfCellCities, self.layoutParameters)[self.cellsPerCity, GROUP.CellCity](self.cellsPerCity);
-//			CellCityGrid.init(self.numberOfCellCities, self.layoutParameters);
-//			CellCityGrid.place();
-//			CellCityGrid.initCells(self.cellsPerCity);
-//			self.layoutParameters.addContainedEntities(self.CellCityGrid);
+			CASL.POPULATE[CellCityGrid](self.numberOfCellCities, self.layoutParameters)[self.numberOfCellCities, GROUP.CellCity](self.cellsPerCity);
 		}; 
 	}; 
 	behaviors: {}; 
