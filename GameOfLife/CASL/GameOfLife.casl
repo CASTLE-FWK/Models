@@ -7,34 +7,33 @@ SYSTEM: {
                 inspection_level: none;
                 lenient_exceptions: diversity modularity;   
                 semantic_groups: disable;
-        };  
+        };   
         parameters: { 
         	var * int:numberOfCellsX = 400;   
-        	var * int:numberOfCellsY = 400;  
-		 	var * int:ruleX = 2;    
-		 	var * int:ruleY = 3; 
+        	var * int:numberOfCellsY = 400;   
+		 	var * int:ruleX = 2;
+		 	var * int:ruleY = 3;  
 		 	var * int:ruleZ = 3;   
-		 	var * int:terminationStep = 1000;  
-		 	var LayoutParameters:layoutParameters;
+		 	var * int:terminationStep = 1000;
+		 	var LayoutParameters:layoutParameters;  
 			var Vector2:numberOfCells;
 			var Grid<env.CellEnv>:cellEnvGrid;   
-			var Vector2:envSize;
-			  
-
-			var Vector2:cellGridDims;
+			var Vector2:envSize;			
+			var Vector2:cellGridDims;   
         };
-        functions: {
-        	def initialize()(): {
+        functions: { 
+        	def initialize()(): {     
         		self.layoutParameters.addEntityType(ENVIRONMENT.CellEnv);
         		cellGridDims.setPair(self.numberOfCellsX, self.numberOfCellsY);
         		envSize.setPair(1,1); 
-				CASL.POPULATE[cellEnvGrid](envSize, self.layoutParameters)[envSize, ENVIRONMENT.CellEnv](); 				
+				CASL.POPULATE[cellEnvGrid](envSize, self.layoutParameters)[envSize, ENVIRONMENT.CellEnv]();
+				CASL.LOGGER(false, true, false, ""); 				
         	};
         };
         agent_types: {
-                Cell; 
+                Cell;    
         };
-        group_types: {;};  
+        group_types: {;};
         
         environment_types: {
                 CellEnv; 
@@ -81,6 +80,7 @@ AGENT Cell: {
 		};
 		doStep[AFFECT][REPEAT(1)](): {
 			INTERACTION.countAliveNeighbors(self);
+			CASL.LOG("");
 		};
  
 	};
@@ -107,35 +107,37 @@ AGENT Cell: {
 				endif;
 			endif; 
 		}; 
-	};
+	}; 
 	subsystems: {}; 
 }; 
   
 ENVIRONMENT CellEnv: {
-        description: "";
-        environment_rules: {
-                type: implicit
+        description: ""; 
+        environment_rules: {  
+                type: implicit 
                 attributes: virtual
                 layout_type: GRID; 
         };
         parameters: {
         	var LayoutParameters:layoutParameters;
-			var Vector2:numberOfCellsOnGrid; 
+			var Vector2:numberOfCellsOnGrid;  
 			var Vector2:envPos;
-			var Grid<agt.Cell>:cellGrid;
+			var Grid<agt.Cell>:cellGrid;			
         };  
-        functions: {    
+        functions: {
         	def setPosition(var Vector2:pos)(): {
         		self.envPos = pos;
-        	};
+        	}; 
         	def getPosition()(var Vector2:pos): {
         		pos = self.envPos;
         	};
         	
-        	def initialize()(): {   
+        	def initialize()(): { 
         		self.layoutParameters.addEntityType(AGENT.Cell); 
+        		self.layoutParameters.setRepresentationType("GRID");
         		var Vector2:dims = SYSTEM.cellGridDims;
-        		CASL.POPULATE[cellGrid](SYSTEM.cellGridDims, self.layoutParameters)[dims, AGENT.Cell](CASL.RANDOM[BOOL](0.5), self);		        		
+        		CASL.POPULATE[cellGrid](SYSTEM.cellGridDims, self.layoutParameters)[dims, AGENT.Cell](CASL.RANDOM[BOOL](0.5), self);
+        		CASL.DISPLAY[GRID] (self.cellGrid);		        		
         	};
         };
         behaviors: {};

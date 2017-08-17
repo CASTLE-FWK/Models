@@ -66,13 +66,15 @@ package cas.test.commons: {
 	obj LayoutParameters: {
 		def addEntityType()(): {}; // Don't have a generic
 		def addContainedEntities()(): {};
+		def setRepresentationType()(): {};
+		def getRepresentationType()(): {};
 	}; 
 	
 	//All the representations will need to exist in their own .casl file soon
 	//Along with accompanying library functions
 	obj Torus: {
 		
-	};
+	}; 
 
 	
 	obj Continuous: {
@@ -94,9 +96,15 @@ package cas.test.commons: {
 		def place()(): {};		
 		def addPhantomCells()(): {};
 		def getNeighboursFromVector(var Vector2:pos)(var List<agt.Cell>:neighbors): {};
+		def getNeighborsFromVectorWithContext(var Vector2:pos)(var Neighbors<agt.Cell>:neighbors): {};
 		def initCells()(): {};
 	};
 	enum GridPositions: {
 		LEFT,RIGHT, DOWN, UP, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT, TOP, BOTTOM, TOPLEFT, TOPRIGHT, BOTTOMLEFT, BOTTOMRIGHT
+	};
+	
+	obj EntityID: {
+		def setID()(): {};
+		
 	};
 }; 
