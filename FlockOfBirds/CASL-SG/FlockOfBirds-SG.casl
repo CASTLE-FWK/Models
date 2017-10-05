@@ -1,0 +1,231 @@
+import cas.commons.*;
+SYSTEM: {      
+        name: "Flock Of Birds_SG";   
+        description: "Stock standard FoB";
+        ruleset: {    
+                type: lenient;   
+                inspection_level: none;
+                lenient_exceptions: diversity modularity;   
+                semantic_groups: enable;
+        };   
+        parameters: { 
+        	var * int:numberOfBirds = 100;
+        	var * int:skyDimX = 600;
+        	var * int:skyDimY = 600;
+        	var * int:sectionSizeX = 150;
+        	var * int:sectionSizeY = 150;
+		 	var * int:terminationStep = 1000;
+		 	var Continuous<env.TheSky>:skyLayout;
+		 	var LayoutParameters:layoutParameters; 
+			var Vector2:skySize;   
+			var Vector2:sectionSize;
+        };
+        functions: { 
+        	def initialize()(): {  
+        		self.layoutParameters.addEntityType(ENVIRONMENT.TheSky);
+        		skySize.setPair(self.skyDimX, self.skyDimY);
+        		sectionSize.setPair(self.sectionSizeX, self.sectionSizeY); 
+				CASL.POPULATE[skyLayout](skySize, self.layoutParameters)[skySize, ENVIRONMENT.TheSky](sectionSize);
+				CASL.LOGGER(false, true, false, ""); 				
+        	};
+        };
+        agent_types: {
+                Bird;    
+        };
+        group_types: {
+        	SkySection;
+        };
+        
+        environment_types: {
+                TheSky; 
+        };
+        end_conditions: {
+                condition STEPS terminationStep;
+        };
+};
+
+AGENT Bird: {
+        description: "A bird"; 
+
+	parameters: {
+		var Vector2:position;
+		var Vector2:velocity;
+		env TheSky:mySky;
+		var float:viewingRange;
+		var string:type;
+	}; 
+  
+	functions: {
+		def setPosition(var Vector2:pos)(): {
+			self.position = pos;
+		};
+		
+		def getPosition()(var Vector2:pos): {
+			pos = self.position;
+		};
+		
+		def setVelocity(var Vector2:vel)():{
+			self.velocity = vel;
+		};
+		
+		def getVelocity()(var Vector2:vel): {
+			vel = self.velocity;
+		};
+		
+		def initialize(env TheSky:theEnv)():{ 
+			self.theEnv = theEnv;
+		};
+	};
+
+	behaviors: {
+		doStep[AFFECT][REPEAT(1)](): {
+			CASL.LOG("");
+			INTERACTION.adjustFromNeighbors();
+			
+		};
+		
+		move[SELF][INSTANT](var Vector2:newPos): {
+			FUNCTION.setPosition(newPos);
+		};		
+		
+		update[SELF][INSTANT](var Vector2:velShift, var Vector2:posShift): {
+			self.velocity = self.velocity.add(velShift);
+			self.position = self.position.add(velocity);			
+		};
+	};
+	      
+	interactions: {  
+		adjustFromNeighbors[QUERY][INPUT(0)]():{
+			var List<agt.Bird>:neighbourBirds =  mySky.ENV_INTERACTION.getNeighbours(self.position,viewingRange);
+			var int:size = neighbourBirds.size();
+			var int:numOfSimilarBirds = 1;
+			//1: For each neighbour
+			var Vector2:sepVec;			
+			foreach (Bird b : neighbourBirds) do
+				//2: Check for birds too close (separation)
+				var Vector2:bPos = b.AGT_INTERACTION.getPosition();
+				bPos.subtract(self.position);
+				sepVec.subtract(bPos);
+				///*THIS NEEDS TO BE ALLOWED*/ sepVec.subtract(b.AGT_INTERACTION.getPosition().subtract(self.position)); //TODO This line is bad. Types aren't being resolve with sequential calls. 
+				//3: check if any birds are of the same type (alignment, cohesion)
+				var Vector2:tmpAlign;
+				var Vector2:tmpCoh;
+				if (b.AGT_INTERACTION.getType() == type) then
+					numOfSimilarBirds = numOfSimilarBirds + 1;					
+					//4: update alignment
+					tmpAlign.add(b.AGT_INTERACTION.getPosition());					
+					//5: update cohesion
+					tmpCoh.add(b.AGT_INTERACTION.getVelocity());
+				endif;
+			endfor;
+			//6: do the averaging 
+			tmpAlign.divide(numOfSimilarBirds);
+			tmpAlign.subtract(self.position);
+			
+			tmpCoh.divide(numOfSimilarBirds);
+			tmpCoh.subtract(self.velocity);
+			
+			//7: update the boid
+			self.velocity.add(tmpAlign);
+			self.velocity.add(sepVec);
+			self.velocity.add(tmpCoh);
+			self.position.add(self.velocity);
+			FUNCTION.setPosition(self.position);
+			  
+		};
+		
+		getType[QUERY][INPUT(0)]():{
+			self.type;
+		};
+		
+		getPosition[QUERY][INPUT(0)]():{
+			self.position;
+		};
+		
+		getVelocity[QUERY][INPUT(0)]():{
+			self.velocity;
+		};
+	};
+ 
+	adaptation: {}; 
+	subsystems: {}; 
+}; 
+
+GROUP SkySection: {
+	description:"";
+	group_rules:{
+		layout_type:BOUND;
+	};
+	parameters:{
+		var LayoutParameters:layoutParameters;
+		var Vector2:numberOfCellsOnGrid;  
+		var Vector2:envPos;
+		var Continuous<agt.Bird>:theSkyRep;	
+		
+	};
+	functions:{
+		def initialize(var int:birdsInSection, var Vector2:coordsOfSection, var Vector2:size)():{
+			self.layoutParameters.addEntityType(AGENT.Bird);
+    		self.layoutParameters.setRepresentationType(ENUM.RepresentationTypes.REP_CONTINUOUS); 
+    		var Vector2:dims = SYSTEM.skyDimensions;
+    		var Vector2:xVec;
+    		var Vector2:yVec;
+    		xVec.setPair(0,dims.getX());
+    		yVec.setPair(0,dims.getY());
+    		var int:numBirds = SYSTEM.numberOfBirds;
+    		CASL.POPULATE[theSkyRep](SYSTEM.skyDimensions, self.layoutParameters)[numBirds, AGENT.Bird](CASL.RANDOM[VECTOR2](xVec, yVec), self);
+    		CASL.DISPLAY[CONTINUOUS] (self.theSkyRep);	
+		};
+	};
+	behaviors:{};
+	external_interactions:{};
+	internal_interactions:{
+		getNeighbours[QUERY][INPUT(1)](var Vector2:birdPos, var float:range): {
+			var List<agt.Bird>:neighbors = self.theSkyRep.getNeighborsFromVector(birdPos, range);				
+		};
+	};	
+	
+};
+  
+ENVIRONMENT TheSky: {
+        description: ""; 
+        environment_rules: {  
+                type: implicit 
+                attributes: virtual
+                layout_type: GRID; 
+        };
+        parameters: {
+        	var LayoutParameters:layoutParameters;  
+			var Vector2:envPos;
+			var Grid<grp.SkySection>:skyGrid;	
+			var Vector2:sectionSize;		
+        };  
+        functions: {
+        	def setPosition(var Vector2:pos)(): {
+        		self.envPos = pos;
+        	}; 
+        	def getPosition()(var Vector2:pos): {
+        		pos = self.envPos; 
+        	};
+        	
+        	def initialize(var Vector2:sectionSize)(): { 
+        		self.layoutParameters.addEntityType(AGENT.Bird);
+        		self.sectionSize = sectionSize;
+        		self.layoutParameters.setRepresentationType(ENUM.RepresentationTypes.REP_GRID);
+        		var Vector2:dims = SYSTEM.skySize;
+        		
+        		CASL.POPULATE[skyGrid](dims, self.layoutParameters)[dims, GROUP.SkySection](sectionSize, self);
+        		CASL.DISPLAY[GRID] (self.skyGrid); //TODO: Thats an odd space		        		
+        	};
+        };
+        behaviors: {};
+        interactions: {
+        	//TODO
+	    	getNeighbours[QUERY][INPUT(1)](var Vector2:birdPos, var float:range): {
+				var List<agt.Bird>:neighbors = self.skyGrid.getNeighboursFromVector(birdPos, range);
+			};
+        };
+        adaptation: {};
+        subsystems: {};
+        group_interactions: {};
+};

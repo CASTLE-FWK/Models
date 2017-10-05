@@ -1,4 +1,4 @@
-import cas.test.commons.*;
+import cas.commons.*;
 SYSTEM: {      
         name: "Game Of Life";   
         description: "Stock standard GoL";
@@ -17,12 +17,12 @@ SYSTEM: {
 		 	var * int:terminationStep = 1000;
 		 	var LayoutParameters:layoutParameters;  
 			var Vector2:numberOfCells;
-			var Grid<env.CellEnv>:cellEnvGrid;   
+			var Grid<env.CellEnv>:cellEnvGrid;
 			var Vector2:envSize;			
 			var Vector2:cellGridDims;   
         };
         functions: { 
-        	def initialize()(): {     
+        	def initialize()(): {  
         		self.layoutParameters.addEntityType(ENVIRONMENT.CellEnv);
         		cellGridDims.setPair(self.numberOfCellsX, self.numberOfCellsY);
         		envSize.setPair(1,1); 
@@ -84,14 +84,14 @@ AGENT Cell: {
 		};
  
 	};
-     
+	      
 	interactions: {  
 		countAliveNeighbors[QUERY][INPUT()](agt Cell:c): {  
-			var List<agt.Cell>:neighborsList = self.theEnv.ENV_INTERACTION.getNeighbours(self.cellPosition, 1); 
-			var int:aliveNeighbors = CASL.COUNT[neighborsList](Alive); 
-			 
-			ADAPTATION.stateAdaptation(aliveNeighbors);
-			CASL.METRIC[true];
+//			var List<agt.Cell>:neighborsList = self.theEnv.ENV_INTERACTION.getNeighbours(self.cellPosition, 1); 
+//			var int:aliveNeighbors = CASL.COUNT[neighborsList](Alive); 
+//			 
+//			ADAPTATION.stateAdaptation(aliveNeighbors);
+//			CASL.METRIC[true];
 		}; 
 	};
  
@@ -134,7 +134,7 @@ ENVIRONMENT CellEnv: {
         	
         	def initialize()(): { 
         		self.layoutParameters.addEntityType(AGENT.Cell); 
-        		self.layoutParameters.setRepresentationType("GRID");
+        		self.layoutParameters.setRepresentationType(ENUM.RepresentationTypes.REP_GRID);
         		var Vector2:dims = SYSTEM.cellGridDims;
         		CASL.POPULATE[cellGrid](SYSTEM.cellGridDims, self.layoutParameters)[dims, AGENT.Cell](CASL.RANDOM[BOOL](0.5), self);
         		CASL.DISPLAY[GRID] (self.cellGrid);		        		

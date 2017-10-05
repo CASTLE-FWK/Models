@@ -1,4 +1,4 @@
-package cas.test.commons: {
+package cas.commons: {
 	obj Vector2: {
 		var int:X = 0;
 		var int:Y = 0; 
@@ -9,13 +9,17 @@ package cas.test.commons: {
 		def setY()(): {};
 		def setPair()(): {};
 		def add()(): {};
-		def subtract()(): {};		
+		def subtract()(): {};	
+		def divide()(): {};	
+		def equals(var Vector2:v)(var bool:eq): {};
 	};
 	
 	obj List: {
 		def add()(): {};
 		def end()(): {};
 		def size()(): {};
+		def remove()(): {};
+		def get(var int:i)(): {};
 	};
 	
 	obj Queue: { //will remove <*> since type inferral will probably be nicer to write with. Oh, we're doing it with typeinferall
@@ -32,18 +36,66 @@ package cas.test.commons: {
 		def size()(): {};
 	};
 	
-	obj Item: {
-		
+	obj Event:{
+		def injectTime()():{};
+		def injectRepeat()():{};		
 	};
 		  
-	obj Map2D: {
-		def get(var Vector2:vec)(var bool:item): {};
-		def peek(var Vector2:vec)(var bool:item): {};
+	obj Map2D: {		
+		def get()(): {};
+		def getPosition()(var Vector2:pos): {};
+		def moveTo()(var bool:isOutOfBounds): {};
+		def moveToWithVelocity(var Vector2:p, var Vector2:v)(var string:outcome): {};
+		def isRoad()():{};
+		def isPark()():{};
+		def isNoGo()():{};	
+		def countEntitiesInRange(var Vector2:pos, var Vector2:range)(var int:count):{};
+		def countEntitiesInRange(var Vector2:pos, var int:dist)(var int:count):{};
+		def isType(var string:st)(var bool:isType):{};
+		def addMapSection(var Map2D:map)(): {};
+		def getMapSection(var Vector2:v)(var Map2D:map): {};
+		def getEntity()(): {};
+		def addEntity()(): {};
+		
+		def getParkAtLocation(var Vector2:location)(var Park:p): {};
+		def entityParking()(var bool:b): {};
+				
 	};
 	
-	obj GridLocation: {
+	obj Park: {
+		var int:maxCapacity;
+		var int:currentCapacity;
+		var Map:currentOccupants;
 		
+		def getMaxCapacity()(var int:a):{
+			a = self.maxCapacity;
+		};
+		
+		def getCurrentCapacity()(var int:a):{
+			a = self.currentCapacity;
+		};		
+		
+		def addOccupant()(var bool:b):{
+			if (currentCapacity < maxCapacity) then
+				currentOccupants.add();
+				currentCapacity = currentCapacity + 1;
+				b = true;
+			else
+				b = false;
+			endif;
+		};
+		
+		def removeOccupant(var string:id)():{			
+			currentCapacity = currentCapacity - 1;
+			currentOccupants.remove(id);
+		};
 	};
+	
+	enum MapEntities: {
+		ROAD_V, ROAD_H, ROAD_T, PARK, NOGO 
+	};
+	
+	obj GridLocation: {};
 	
 	obj Neighbors: {
 		def init()(): {};
@@ -58,16 +110,20 @@ package cas.test.commons: {
 	};  
 	
 	obj Map: {
+		//We should be able to define a Map using symbols in a txt file....
 		def get()(): {};
-		def add()(): {};		
+		def add()(): {};
+		def addAll(var Map:m)(): {};
+		def remove()(): {};
+		def put()(): {};		
 	};
 
 	
-	obj LayoutParameters: {
-		def addEntityType()(): {}; // Don't have a generic
+	obj LayoutParameters: {		
+		def addEntityType()(): {}; 
 		def addContainedEntities()(): {};
 		def setRepresentationType()(): {};
-		def getRepresentationType()(): {};
+		def getRepresentationType()(var string:str): {};
 	}; 
 	
 	//All the representations will need to exist in their own .casl file soon
@@ -75,36 +131,46 @@ package cas.test.commons: {
 	obj Torus: {
 		
 	}; 
-
 	
 	obj Continuous: {
-		def init()(): {};
+		def init()(): {}; 
 		def getAll()(): {};
 		def send()(): {};
 		def place()(): {};	
 		def create()(): {};
 		def getAllOutOfBounds()(): {};
-		def getNeighborsFromPosition()(): {};
+		def getNeighborsFromVector()(): {};
 		def setDimensions()(): {};
+		def moveTo()(): {};
 	};
 	
 	obj Grid: {		
 		def init()(): {};
 		def getAll()(): {};
 		def getAllAsArray()(): {};
-		def send(var GridPositions:gp, var List<agt.Cell>:neighbors)(): {};
+		def send(var GridPositions:gp, var List:neighbors)(): {};
 		def place()(): {};		
 		def addPhantomCells()(): {};
-		def getNeighboursFromVector(var Vector2:pos)(var List<agt.Cell>:neighbors): {};
-		def getNeighborsFromVectorWithContext(var Vector2:pos)(var Neighbors<agt.Cell>:neighbors): {};
+		def getNeighboursFromVector(var Vector2:pos)(var List:neighbors): {};
+		def getNeighborsFromVectorWithContext(var Vector2:pos)(var Neighbors:neighbors): {};
 		def initCells()(): {};
 	};
+
 	enum GridPositions: {
 		LEFT,RIGHT, DOWN, UP, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT, TOP, BOTTOM, TOPLEFT, TOPRIGHT, BOTTOMLEFT, BOTTOMRIGHT
 	};
 	
+	//Apologies, the REP_ prefix has to be done since RepTypes are being considered special keywords for some reason..
+	enum RepresentationTypes: {
+		REP_GRID, REP_TORUS, REP_BOUND, REP_GRAPH, REP_NETWORK, REP_GIS, REP_MESH3D, REP_CONTINUOUS, REP_MAP2D
+	};
+	
 	obj EntityID: {
 		def setID()(): {};
+		
+	};
+	
+	obj Entity: {
 		
 	};
 }; 
