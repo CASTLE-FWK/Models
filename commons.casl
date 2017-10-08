@@ -167,10 +167,62 @@ package cas.commons: {
 	
 	obj EntityID: {
 		def setID()(): {};
-		
+		def getID()(): {};
 	};
 	
-	obj Entity: {
-		
+	obj Entity:{};
+	
+	obj Network: {
+		def addNode(var Entity:e, var string:id)(): {};
+		def getEntities()(var List<obj.Entity>:theReturn): {};
+		def addEdge()(): {};
+		def addEntity()(var bool:theReturn): {};
+		def removeEntity()(var bool:theReturn): {};
+		def removeEntityByID()(var bool:theReturn): {};
+		def initialize()(var bool:theReturn): {};
+		def initializeEntity()(var bool:theReturn): {};
+		def initializeEntities()(var bool:theReturn): {};
+		def addEntities()(var bool:theReturn): {};
+		def addEntity(var Entity:e, var Vector2:p)(var bool:theReturn): {};
 	};
+
+	obj NetworkEdge: {
+		def getWeight()(var float:theReturn): {};
+		def tostring()(var string:theReturn): {};
+		def containsNetworkNode()(var bool:theReturn): {};
+		def containsNetworkNodes(var NetworkNode:n1, var NetworkNode:n2)(var bool:theReturn): {};
+		def setWeight()(): {};
+		def compareTo()(var int:theReturn): {};
+	};
+	obj NetworkNode: {
+		def normalise()(): {};
+		def getName()(var string:theReturn): {};
+		def getType()(var string:theReturn): {};
+		def multiplyCoords()(): {};
+		def getPosition()(var Vector2:theReturn): {};
+		def tostring()(var string:theReturn): {};
+		def newCoords(var float:newX, var float:newY)(): {};
+		def getX()(var float:theReturn): {};
+		def setX()(): {};
+		def getY()(var float:theReturn): {};
+		def setY()(): {};
+		def addIncomingEdge()(): {};
+		def addOutgoingEdge()(): {};
+		def incrementOutgoingInteractions()(): {};
+		def incrementIncomingInteractions()(): {};
+		def addOutgoingWeight()(): {};
+		def getOutgoingWeight()(var float:theReturn): {};
+		def getIncomingWeight()(var float:theReturn): {};
+		def addIncomingWeight()(): {};
+		def getTotalWeight()(var float:theReturn): {};
+		def outGoingInteractions()(var int:theReturn): {};
+		def incomingInteractions()(var int:theReturn): {};
+		def totalInteractions()(var int:theReturn): {};
+		def merge()(): {};
+		def compare(var NetworkNode:n1, var NetworkNode:n2)(var int:theReturn): {};
+		def compare(var NetworkNode:n1, var NetworkNode:n2)(var int:theReturn): {};
+		def compare(var NetworkNode:n1, var NetworkNode:n2)(var int:theReturn): {};
+	};
+	
+
 }; 
