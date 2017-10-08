@@ -7,7 +7,7 @@ SYSTEM: {
                 inspection_level: none;
                 lenient_exceptions: diversity modularity;   
                 semantic_groups: disable; 
-        }; 
+        };   
         parameters: {
         	var * int:numberOfBirds = 100;
         	var * int:skyDimX = 500;
@@ -15,7 +15,7 @@ SYSTEM: {
 		 	var * int:terminationStep = 1000;
 		 	var Continuous<env.TheSky>:skyLayout;
 		 	var LayoutParameters:layoutParameters; 
-			var Vector2:skyDimensions;    
+			var Vector2:skyDimensions; 
         };
         functions: { 
         	def initialize()(): {  
@@ -24,10 +24,10 @@ SYSTEM: {
         		var Vector2:oneVector;
         		oneVector.setPair(1,1);
 				CASL.POPULATE[skyLayout](skyDimensions, self.layoutParameters)[oneVector, ENVIRONMENT.TheSky]();
-				CASL.LOGGER(false, true, false, ""); 				
+				CASL.LOGGER(false, true, false, false, false, false, ""); 				
         	};
         };  
-        agent_types: { 
+        agent_types: {    
                 Bird;    
         };
         group_types: {;};
@@ -83,7 +83,9 @@ AGENT Bird: {
 		
 		update[SELF][INSTANT](var Vector2:velShift, var Vector2:posShift): {
 			self.birdVelocity = self.birdVelocity.add(velShift);
-			self.birdPosition = self.birdPosition.add(birdVelocity);			
+			
+			self.birdPosition = self.birdPosition.add(birdVelocity);
+			 			
 		};
 	};
 	      
@@ -164,7 +166,7 @@ ENVIRONMENT TheSky: {
         };  
         functions: {
         	def setBirdPosition(var Vector2:pos)(): {
-        		self.envPos = pos; 
+        		self.envPos = pos;  
         	}; 
         	def getBirdPosition()(var Vector2:pos): {
         		pos = self.envPos; 
@@ -175,14 +177,14 @@ ENVIRONMENT TheSky: {
         		self.layoutParameters.setRepresentationType(ENUM.RepresentationTypes.REP_CONTINUOUS); 
         		var Vector2:dims = SYSTEM.skyDimensions;
         		var Vector2:xVec;
-        		var Vector2:yVec;  
+        		var Vector2:yVec;
         		var int:numBirds = SYSTEM.numberOfBirds;
         		xVec.setPair(0,dims.getX());
         		yVec.setPair(0,dims.getY());
         		var Vector2:initVel;
-        		initVel.setPair(-10,10);
+        		initVel.setPair(-10,10); 
         		CASL.POPULATE[theSkyRep](SYSTEM.skyDimensions, self.layoutParameters)[numBirds, AGENT.Bird](CASL.RANDOM[VECTOR2](xVec, yVec), initVel, self);
-        		CASL.DISPLAY[CONTINUOUS] (self.theSkyRep);     		
+//        		CASL.DISPLAY[CONTINUOUS] (self.theSkyRep);     		
         	};
         };
         behaviors: {};
