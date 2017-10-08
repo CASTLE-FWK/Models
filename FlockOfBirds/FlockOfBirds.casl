@@ -24,6 +24,8 @@ SYSTEM: {
         		var Vector2:oneVector;
         		oneVector.setPair(1,1);
 				CASL.POPULATE[skyLayout](skyDimensions, self.layoutParameters)[oneVector, ENVIRONMENT.TheSky]();
+
+				//Not muted, log to console, don't log to file, don't write model data to console, file, or DB
 				CASL.LOGGER(false, true, false, false, false, false, ""); 				
         	};
         };  
@@ -71,7 +73,6 @@ AGENT Bird: {
 
 	behaviors: {
 		doStep[AFFECT][REPEAT(1)](): {
-			CASL.LOG("");
 			INTERACTION.adjustFromNeighbors();
 			BEHAVIOR.move();
 			
@@ -183,8 +184,7 @@ ENVIRONMENT TheSky: {
         		yVec.setPair(0,dims.getY());
         		var Vector2:initVel;
         		initVel.setPair(-10,10); 
-        		CASL.POPULATE[theSkyRep](SYSTEM.skyDimensions, self.layoutParameters)[numBirds, AGENT.Bird](CASL.RANDOM[VECTOR2](xVec, yVec), initVel, self);
-//        		CASL.DISPLAY[CONTINUOUS] (self.theSkyRep);     		
+        		CASL.POPULATE[theSkyRep](SYSTEM.skyDimensions, self.layoutParameters)[numBirds, AGENT.Bird](CASL.RANDOM[VECTOR2](xVec, yVec), initVel, self);	
         	};
         };
         behaviors: {};

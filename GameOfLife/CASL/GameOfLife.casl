@@ -27,7 +27,8 @@ SYSTEM: {
         		cellGridDims.setPair(self.numberOfCellsX, self.numberOfCellsY);
         		envSize.setPair(1,1); 
 				CASL.POPULATE[cellEnvGrid](envSize, self.layoutParameters)[envSize, ENVIRONMENT.CellEnv]();
-				CASL.LOGGER(false, true, false, false, false, false, ""); 				
+				//Not muted, log to console, don't log to file, don't write model data to console, file, or DB
+				CASL.LOGGER(false, true, false, false, false, false, ""); 					
         	};
         };
         agent_types: {
@@ -86,7 +87,7 @@ AGENT Cell: {
 		};    
 		doStep[AFFECT][REPEAT(1)](): {
 			INTERACTION.countAliveNeighbors(self);
-			CASL.LOG("woof" + self.Alive + self.id.getID());  
+			CASL.LOG(self.id.getID() +" is " + self.Alive);  
 		};    
  
 	};
