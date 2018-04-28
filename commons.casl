@@ -1,0 +1,274 @@
+package cas.commons: {
+	obj Vector2: {
+		var int:X = 0;
+		var int:Y = 0; 
+		def calculateDistance()(): {};
+		def getX()(): {};
+		def getY()(): {};
+		def setX()(): {};
+		def setY()(): {};
+		def setPair()(): {};
+		def add()(): {};
+		def subtract()(): {};	
+		def divide()(): {};	
+		def multiply()(): {};
+		def copy(var Vector2:v)():{
+			self.X = v.getX();
+			self.Y = v.getY();
+		};
+		def equals(var Vector2:v)(var bool:eq): {};
+	};
+	
+	obj List: {
+		def add()(): {};
+		def end()(): {};
+		def size()(): {};
+		def remove()(): {};
+		def get(var int:i)(): {};
+		def next()():{};
+		def peek()():{};
+	};
+	
+	obj Queue: {
+		def deq()(): {};
+		def enq()(): {};
+		def empty()(): {};
+		def size()(): {};
+	};
+	 
+	obj PQueue: { 
+		def deq()(): {};
+		def enq()(): {};
+		def empty()(): {};
+		def size()(): {};
+	};
+	
+	obj Event:{
+		def injectTime()():{};
+		def injectRepeat()():{};		
+	};
+		  
+	obj Map2D: {		
+		def get()(): {};
+		def getPosition()(var Vector2:pos): {};
+		def moveTo()(var bool:isOutOfBounds): {};
+		def moveToWithVelocity(var Vector2:p, var Vector2:v)(var string:outcome): {};
+		def isRoad()():{}; 
+		def isPark()():{};
+		def isNoGo()():{};	
+		def countEntitiesInRange(var Vector2:pos, var Vector2:range)(var int:count):{};
+		def countEntitiesInRange(var Vector2:pos, var int:dist)(var int:count):{};
+		def isType(var string:st)(var bool:isType):{};
+		def addMapSection(var Map2D:map)(): {};
+		def getMapSection(var Vector2:v)(var Map2D:map): {};
+		def getEntity()(): {};
+		def addEntity()(): {};
+		def getPositionOfEntity()():{};
+		def createSubMaps(var int:numberOfSections)():{};
+		def getSubMapsAsList()():{};
+		def getDimensions()():{};
+		def getSize()():{};
+		
+		def getSubMapRangesAsList()():{};
+		def changeSectionOfMapToType()():{};
+		def replaceSectionOfMap()():{};
+		def extractMapSection()():{};
+		def moveAlongWithSpeed()():{};
+		
+		def getParkAtPosition(var Vector2:position)(var Park:p): {};
+		def entityParking()(var bool:b): {}; //Wtf does this actually do?
+		
+		
+	}; 
+	
+		
+	obj Park: {
+		var int:maxCapacity;
+		var int:currentCapacity;
+		var HashMap:currentOccupants;
+		
+		def getMaxCapacity()(var int:a):{
+			a = self.maxCapacity;
+		};
+		
+		def getCurrentCapacity()(var int:a):{
+			a = self.currentCapacity;
+		};		
+		
+		def addOccupant()(var bool:b):{
+			if (currentCapacity < maxCapacity) then
+				currentOccupants.add();
+				currentCapacity = currentCapacity + 1;
+				b = true;
+			else
+				b = false;
+			endif;
+		};
+		
+		def removeOccupant(var string:id)():{			
+			currentCapacity = currentCapacity - 1;
+			currentOccupants.remove(id);
+		};
+	};
+	
+	enum MapEntities: {
+		ROAD_V, ROAD_H, ROAD_T, PARK, NOGO 
+	};
+	
+	obj GridLocation: {};
+	
+	obj Neighbors: {
+		def init()(): {};
+		def getUL()(): {};
+		def getU()(): {};
+		def getL()(): {};
+		def getUR()(): {};
+		def getR()(): {};
+		def getDR()(): {};
+		def getD()(): {};
+		def getDL()(): {};
+	};  
+	
+	obj HashMap: {
+		//We should be able to define a Map using symbols in a txt file....
+		def get()(): {};
+		def add()(): {};
+		def addAll(var HashMap:m)(): {};
+		def remove()(): {};
+		def put()(): {};		
+		def size()(): {};
+	};
+
+	
+	obj LayoutParameters: {		
+		def addEntityType()(): {}; 
+		def addContainedEntities()(): {};
+		def setRepresentationType()(): {};
+		def getRepresentationType()(var string:str): {};
+	}; 
+	
+	//All the representations will need to exist in their own .casl file soon
+	//Along with accompanying library functions
+	obj Torus: {
+		
+	}; 
+	
+	obj Continuous: {
+		def init()(): {}; 
+		def getAll()(): {};
+		def send()(): {};
+		def place()(): {};	
+		def create()(): {};
+		def getAllOutOfBounds()(): {};
+		def getNeighborsFromVector()(): {};
+		def setDimensions()(): {};
+		def moveTo()(): {};
+	};
+	
+	obj Grid: {		
+		def init()(): {};
+		def getAll()(): {};
+		def getAllAsArray()(): {};
+		def send(var GridPositions:gp, var List:neighbors)(): {};
+		def place()(): {};		
+		def addPhantomCells()(): {};
+		def getNeighboursFromVector(var Vector2:pos)(var List:neighbors): {};
+		def getNeighborsFromVectorWithContext(var Vector2:pos)(var Neighbors:neighbors): {};
+		def initCells()(): {};
+	};
+
+	enum GridPositions: {
+		LEFT,RIGHT, DOWN, UP, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT, TOP, BOTTOM, TOPLEFT, TOPRIGHT, BOTTOMLEFT, BOTTOMRIGHT
+	};
+	
+	//Apologies, the REP_ prefix has to be done since RepTypes are being considered special keywords for some reason..
+	enum RepresentationTypes: {
+		REP_GRID, REP_TORUS, REP_BOUND, REP_GRAPH, REP_NETWORK, REP_GIS, REP_MESH3D, REP_CONTINUOUS, REP_MAP2D
+	};
+	
+	obj EntityID: {
+		def setID()(): {};
+		def getID()(): {};
+	};
+	
+	obj Entity:{};
+	
+	obj Network: {
+		def addNode(var Entity:e, var string:id)(): {};
+		def getEntities()(var List<obj.Entity>:theReturn): {};
+		def addEdge()(): {};
+		def addEntity()(var bool:theReturn): {};
+		def removeEntity()(var bool:theReturn): {};
+		def removeEntityByID()(var bool:theReturn): {};
+		def initialize()(var bool:theReturn): {};
+		def initializeEntity()(var bool:theReturn): {};
+		def initializeEntities()(var bool:theReturn): {};
+		def addEntities()(var bool:theReturn): {};
+		def addEntity(var Entity:e, var Vector2:p)(var bool:theReturn): {};
+	};
+
+	obj NetworkEdge: {
+		def getWeight()(var float:theReturn): {};
+		def tostring()(var string:theReturn): {};
+		def containsNetworkNode()(var bool:theReturn): {};
+		def containsNetworkNodes(var NetworkNode:n1, var NetworkNode:n2)(var bool:theReturn): {};
+		def setWeight()(): {};
+		def compareTo()(var int:theReturn): {};
+	};
+	obj NetworkNode: {
+		def normalise()(): {};
+		def getName()(var string:theReturn): {};
+		def getType()(var string:theReturn): {};
+		def multiplyCoords()(): {};
+		def getPosition()(var Vector2:theReturn): {};
+		def tostring()(var string:theReturn): {};
+		def newCoords(var float:newX, var float:newY)(): {};
+		def getX()(var float:theReturn): {};
+		def setX()(): {};
+		def getY()(var float:theReturn): {};
+		def setY()(): {};
+		def addIncomingEdge()(): {};
+		def addOutgoingEdge()(): {};
+		def incrementOutgoingInteractions()(): {};
+		def incrementIncomingInteractions()(): {};
+		def addOutgoingWeight()(): {};
+		def getOutgoingWeight()(var float:theReturn): {};
+		def getIncomingWeight()(var float:theReturn): {};
+		def addIncomingWeight()(): {};
+		def getTotalWeight()(var float:theReturn): {};
+		def outGoingInteractions()(var int:theReturn): {};
+		def incomingInteractions()(var int:theReturn): {};
+		def totalInteractions()(var int:theReturn): {};
+		def merge()(): {};
+		def compare(var NetworkNode:n1, var NetworkNode:n2)(var int:theReturn): {};
+		def compare(var NetworkNode:n1, var NetworkNode:n2)(var int:theReturn): {};
+		def compare(var NetworkNode:n1, var NetworkNode:n2)(var int:theReturn): {};
+	};
+	
+	obj String:{};
+	
+	obj Range2D: {
+		var Vector2:point1;
+		var Vector2:point2;
+		var Vector2:point3;
+		var Vector2:point4;
+		
+		def setPoints(var Vector2:a, var Vector2:b, var Vector2:c, var Vector2:d)(): {
+			point1 = a;
+			point2 = b;
+			point3 = c;
+			point4 = d;
+		};
+		
+		//TODO: Fill this in
+		def containsPoint(var Vector2:p)(var bool:contains):{
+			contains = false;
+		};
+		
+		def chunkRange(var int:numberOfChunks)(var List<obj.Range2D>:chunks): {
+			
+		};
+	};
+	
+
+}; 
